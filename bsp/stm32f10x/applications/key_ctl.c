@@ -394,15 +394,15 @@ GPIO_WriteBit(GPIOC, GPIO_Pin_11, Bit_RESET);
 
 void key_io_set(u16 val)
 {
-u8 tmp;
+u16 tmp;
 
 	switch(val)
 	{
-	case 10:
+	case 9:
 		GPIO_WriteBit(GPIOC, GPIO_Pin_8, Bit_SET);
 		GPIO_WriteBit(GPIOC, GPIO_Pin_9, Bit_RESET);
 		break;
-	case 9:
+	case 10:
 		GPIO_WriteBit(GPIOC, GPIO_Pin_9, Bit_SET);
 		GPIO_WriteBit(GPIOC, GPIO_Pin_8, Bit_RESET);
 		break;
@@ -454,14 +454,21 @@ void key_handle(u16 val)
 			val = val&0x7fff;
 		}
 		else 
-#endif			
-			if(val >=9)
-		{
-			key_io_set(val);
-			return;
-		}
+#endif	
+
+		if((val < 0x8009)&&(val >= 0x8000))
+			val = val&0x7fff;
 		else
-			return;
+		{
+			if(val >=9)
+			{
+				key_io_set(val);
+				return;
+			}
+			else
+				return;
+
+		}
 		
 		if(val<9)
 		{
