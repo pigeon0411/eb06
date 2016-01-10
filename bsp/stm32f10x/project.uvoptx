@@ -45,7 +45,7 @@
         <PageWidth>79</PageWidth>
         <PageLength>66</PageLength>
         <TabStop>8</TabStop>
-        <ListingPath>.\build\</ListingPath>
+        <ListingPath>..\..\..\mdk_out\</ListingPath>
       </OPTLEX>
       <ListingPage>
         <CreateCListing>1</CreateCListing>
@@ -176,9 +176,9 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>489</LineNumber>
+          <LineNumber>397</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134251222</Address>
+          <Address>134242672</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -187,7 +187,7 @@
           <BreakIfRCount>1</BreakIfRCount>
           <Filename>.\applications\key_ctl.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\eb06\applications/key_ctl.c\489</Expression>
+          <Expression>\\eb06\applications/key_ctl.c\397</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
