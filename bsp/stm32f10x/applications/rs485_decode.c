@@ -226,6 +226,89 @@ void rt_rs485_thread_entry(void* parameter)
 }
 
 
+void rt_protocol_analyse_thread_entry(void* parameter)
+{
+    char k;
+
+	while (1)
+    {
+        /* wait receive */
+        if (rt_sem_take(uart1_sem, RT_WAITING_FOREVER) == RT_EOK) 
+		{
+			if(command_analysis())
+			{
+
+				//ptz_execute();
+			    switch(command_byte)
+				{
+				case 0x0E://open iris
+					
+				    break;
+				case 0x0F://close  iris
+					
+					break;
+				case 0x01:
+					key_io_set(9);
+
+					break;
+				case 0x02:
+					key_io_set(10);
+
+					break;
+
+				case 0x03:
+					key_io_set(11);
+
+					break;
+
+				case 0x04:
+					key_io_set(12);
+
+					break;
+				case 0x05:
+						key_io_set(0x800f);
+
+					break;
+				case 0x10://set preset point
+				k = prePoint_num_Function(Rocket_fir_data); //return 0 or 1~128 preset point
+				if (k)
+				{
+
+				}
+				else           //function preset point
+					dome_func_control(command_byte,Rocket_fir_data);
+				break;
+
+				case 0x11://call preset point
+				k = prePoint_num_Function(Rocket_fir_data); //return 0 or 1~128 preset point
+				if (k)
+				{
+
+				}               
+				else           //function preset point
+					dome_func_control(command_byte,Rocket_fir_data);
+				break;
+				case 0x90:
+
+					break;
+				default:
+					break;
+				}
+
+				
+			}
+
+			rt_thread_delay(40);
+		}
+
+	   
+    }	
+	
+}
+
+
+
+
 void rs485_data_init(void)
 {
 	queue_init();
@@ -236,6 +319,12 @@ void rs485_data_init(void)
   	Rocket_sec_data=0x00;
   	Rec_byte_count=0x00;
 	Current_Protocol = 0x00; 
+
+
+	Protocol_No = PELCO_D;
+
+
+	
 	if (0x00 == Protocol_No)
     Current_Protocol = 0x01;   //auto Identify
 
@@ -265,7 +354,7 @@ rt_err_t rs485_send_data(u8* data,u16 len)
 	}
 	
 	rt_device_write(uart1_dev_my->device, 0, data, len);
-
+	
 	return RT_EOK;
 }
 
@@ -294,9 +383,15 @@ int rs485_system_init(void)
 
 
 		init_thread = rt_thread_create("rs485",rt_rs485_thread_entry, RT_NULL,
-                                   4092, 8, 21);
+                                   1024, 8, 21);
 	  if (init_thread != RT_NULL)
         rt_thread_startup(init_thread);
+
+
+	  init_thread = rt_thread_create("decode485",rt_protocol_analyse_thread_entry, RT_NULL,
+								 1024, 8, 21);
+	if (init_thread != RT_NULL)
+		rt_thread_startup(init_thread);
 
     return 0;
 }
