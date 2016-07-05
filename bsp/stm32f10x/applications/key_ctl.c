@@ -8,6 +8,10 @@
 #include "includes.h"
 
 void iris_auto_manual_set(u8 mode);
+void pelcod_call_pre_packet_send(u8 val);
+void pelcod_open_close_packet_send_exptend(u8 val,u8 speed,u8 data5);
+
+
 
 void led_pin_init(void)
 {
@@ -77,6 +81,44 @@ void key_pin_init(void)
 
 u16 key_pre = 0;
 
+
+
+u8 mode_disp_state = 0;
+
+static u8 pb11_mode_check(void)
+{
+	static u8 key_state_tmp = 0;
+	
+	if(GPIO_ReadInputDataBit(KEY_PORT2,GPIO_Pin_11) == 0)
+	{
+		rt_thread_delay(RT_TICK_PER_SECOND/50);
+		if(GPIO_ReadInputDataBit(KEY_PORT2,GPIO_Pin_11) == 0)
+		{
+
+			if(key_state_tmp == 0)
+			{
+
+				key_state_tmp = 1;
+				mode_disp_state++;
+				if(mode_disp_state>3)
+					mode_disp_state = 0;
+
+				
+				pelcod_call_pre_packet_send(mode_disp_state+201);
+				return 1;
+
+			}
+		}
+
+	}
+	else
+	{
+		key_state_tmp = 0;
+
+	}
+
+	return 0;
+}
 
 
 //返回0为无按键，返回非0值，则为对应的按键号
@@ -303,6 +345,39 @@ void pelcod_open_close_packet_send(u8 val)
 }
 
 
+
+//val: 0,open; 1,close
+void pelcod_open_close_packet_send_exptend(u8 val,u8 speed,u8 data5)
+{
+	u8 cnt;
+	
+	u8 cmd_buff_private[7];
+	cmd_buff_private[0] = 0xff;
+	cmd_buff_private[1] = 0xff;
+	if(val)//close
+		cmd_buff_private[2] = 0x04;
+	else
+		cmd_buff_private[2] = 0x02;
+	cmd_buff_private[3] = 0;
+	cmd_buff_private[4] = speed;
+	cmd_buff_private[5] = data5;
+	
+	cmd_buff_private[6] = cmd_buff_private[1] + cmd_buff_private[2] + cmd_buff_private[3] + cmd_buff_private[4] + cmd_buff_private[5];
+	rs485_send_data(cmd_buff_private,7);
+
+//	cnt=3;
+//	while(cnt--)
+//	{
+//		if(RT_EOK == rs485_recieve_check(val))
+//			break;
+//		else
+//			rs485_send_data(cmd_buff_private,7);
+//	}
+}
+
+
+
+
 //val 7,7on 8off;8,7 off,8on
 void led_7_8_onoff_set(u8 val)
 {
@@ -481,9 +556,9 @@ void key_handle(u16 val)
 				if(iris_auto_manual_state)//manual mode
 				{
 				if(val==7)
-					pelcod_open_close_packet_send(1);
+					pelcod_open_close_packet_send_exptend(1,3,0x80);//pelcod_open_close_packet_send(1);
 				else
-					pelcod_open_close_packet_send(0);
+					pelcod_open_close_packet_send_exptend(0,3,0x80);//pelcod_open_close_packet_send(0);
 				}
 			}
 		}
@@ -512,6 +587,20 @@ void rt_key_thread_entry(void* parameter)
 			key_handle(k);
 rt_thread_delay(100);
 		}
+
+
+
+
+
+
+
+
+
+
+
+		pb11_mode_check();
+		
+		
 		rt_thread_delay(4);
     }
 }
